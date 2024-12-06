@@ -33,7 +33,7 @@ public class GameLoop extends  JPanel implements Runnable{
     @Override
     public void run() {
         //Game loop
-        final double drawInterval = 1; // Nanoseconds per frame
+        final double drawInterval = 1000000000/FPS; // Nanoseconds per frame
         double delta = 0;
         long lastTime = System.nanoTime();
         long currentTime;

@@ -10,6 +10,6 @@ public class ThirdLayerEnemy extends Monster {
     private BufferedImage sprite;
 
     public ThirdLayerEnemy (int initialX, int initialY) {
-        super("/sprites/enemyBlue2.png", initialX, initialY);
+        super("/sprites/enemyBlue2.png", initialX, initialY, 1);
     }
 }

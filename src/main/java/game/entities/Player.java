@@ -1,12 +1,14 @@
 package game.entities;
-import game.GameLoop;
-import game.KeyHandler;
-import game.GameManager;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import game.GameManager;
+import game.KeyHandler;
+import game.effects.Thrusts;
 
 public class Player {
     private boolean leftCollision, rightCollision;
@@ -17,6 +19,7 @@ public class Player {
     public final static int HEIGHT = 25;
     public final static int WIDHT = 25;
     private BufferedImage sprite;
+    private Thrusts thrusts;
 
     public Player(int initialX, int initialY){
         this.x = initialX;
@@ -29,6 +32,7 @@ public class Player {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        thrusts = new Thrusts("/effects/fire16.png", "/effects/fire17.png", x+2, x+Player.WIDHT/2 +3, y+Player.HEIGHT-4, WIDHT/3, HEIGHT/2);
     }
 
     public void checkCollisions() {
@@ -45,22 +49,21 @@ public class Player {
     public void update() {
         checkCollisions();
         if (KeyHandler.rightPressed && !rightCollision) {
-            x += 8;
-            KeyHandler.rightPressed = false;
+            x += 3;
         }
         if (KeyHandler.leftPressed && !leftCollision) {
-            x -= 8;
-            KeyHandler.leftPressed = false;
+            x -= 3;
         }
+        thrusts.update(x+2, x+Player.WIDHT/2 +3, y+Player.HEIGHT-4);
     }
 
     public void draw (Graphics2D g2) {
         if (sprite != null) {
             g2.drawImage(sprite, x, y, WIDHT, HEIGHT, null);
         } else {
-            // Fallback to drawing a rectangle if the sprite fails to load
             g2.setColor(Color.GREEN);
             g2.fillRect(x, y, WIDHT, HEIGHT);
         }
+        thrusts.draw(g2);
     }
 }

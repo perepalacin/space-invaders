@@ -11,11 +11,14 @@ import java.util.ArrayList;
 public class GameManager {
     private final int WIDTH = 700;
     private final int HEIGHT = 620;
-    public static int left_x;
-    public static int right_x;
+    public static int left_x; //Left limit of the playable area
+    public static int right_x; // Right limit of the playable area
     public static int top_y;
     public static int bottom_y;
-    public static int dropInterval = 60; // 60 frames == 1sec
+    public int monstersDirection = 1; // 1 = right, -1 = left
+    private int monstersMoveDownCounter = 0;
+    private boolean monstersMoveDown = false;
+
 
     public boolean gameOver;
     public Player player;
@@ -30,29 +33,30 @@ public class GameManager {
         player = new Player(GameLoop.WIDTH / 2, bottom_y + Player.HEIGHT);
         monsters = new ArrayList<>();
         int monsterXPos;
-        int row;
+        int row = 0;
         for (int i = 0; i < 3; i++) {
             monsterXPos = Monster.WIDHT;
-            row = 0;
             for (int j = 0; j < 20; j++) {
                 if (j == 10) {
-                    row = 1;
+                    row = row + 1;
                     monsterXPos = Monster.WIDHT;
                 }
                 switch (i) {
-                    case 0: monsters.add(new FirstLayerEnemy(monsterXPos, top_y + Monster.HEIGHT * 8 + row * Monster.HEIGHT * 2)); break;
-                    case 1: monsters.add(new SecondLayerEnemy(monsterXPos, top_y + Monster.HEIGHT * 4 + row * Monster.HEIGHT * 2)); break;
-                    case 2: monsters.add(new ThirdLayerEnemy(monsterXPos, top_y + row * Monster.HEIGHT * 2)); break;
+                    case 0: monsters.add(new FirstLayerEnemy(monsterXPos, top_y + row * Monster.HEIGHT + row*15)); break;
+                    case 1: monsters.add(new SecondLayerEnemy(monsterXPos, top_y + row * Monster.HEIGHT + row*15)); break;
+                    case 2: monsters.add(new ThirdLayerEnemy(monsterXPos, top_y + row * Monster.HEIGHT + row*15)); break;
                 }
                 monsterXPos += Monster.WIDHT * 2;
             }
+            row++;
         }
 
         protections = new ArrayList<>();
-        for (int i = 0; i<14; i++) {
-            protections.add(new Protection(GameLoop.WIDTH / 14 * i, bottom_y - Protection.HEIGHT));
+        for (int i = 0; i < 14; i++) {
+            if ((i % 5) < 4) {
+                protections.add(new Protection(left_x*2 + (WIDTH) / 14 * i, bottom_y - Protection.HEIGHT));
+            }
         }
-
     }
 
     public void draw(Graphics2D g2) {
@@ -79,10 +83,34 @@ public class GameManager {
         protections.forEach(protection -> protection.draw(g2));
     }
 
-    public void update() {
-        System.out.println("Updated!");
-        player.update();
+    public void updateMonster() {
+        int minX = right_x, maxX = left_x;
+        if (monstersDirection == 1) {
+            maxX = monsters.stream().mapToInt(monster -> monster.x).max().orElse(right_x);
+        } else {
+            minX = monsters.stream().mapToInt(monsters -> monsters.x).min().orElse(left_x);
+        }
+        if (minX < left_x || maxX + Monster.WIDHT > right_x) {
+            monstersDirection *= -1;
+            monstersMoveDown = true;
+        } else {
+            if (monstersMoveDown) {
+                monstersMoveDownCounter++;
+                if (monstersMoveDownCounter > Monster.HEIGHT / 2) {
+                    monstersMoveDownCounter = 0;
+                    monstersMoveDown = false;
+                }
+            }
+        }
+        monsters.forEach(monster -> monster.update(monstersDirection, monstersMoveDown));
     }
+
+    public void update() {
+        player.update();
+        updateMonster();
+    }
+
+
 }
 
 

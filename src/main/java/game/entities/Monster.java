@@ -1,16 +1,15 @@
 package game.entities;
 
-import game.GameManager;
 import game.effects.Thrusts;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Monster {
-    private int hitPoints;
-    private static int SCORE;
+    public final int SCORE;
     public int x;
     public int y;
     public static int HEIGHT = 25;
@@ -18,18 +17,24 @@ public class Monster {
     private BufferedImage sprite;
     private final Thrusts thrusts;
     private final int thrustsNumber;
-
-
-    public Monster(String spriteRoute, int initialX, int initialY, int thrustsNumber) {
-        x = initialX;
-        y = initialY;
-        this.thrustsNumber = thrustsNumber;
+    private static final ArrayList<BufferedImage> sprites = new ArrayList<>();
+    static {
         try {
-            sprite = ImageIO.read(getClass().getResource(spriteRoute));
+            sprites.add(ImageIO.read(Monster.class.getResource("/sprites/enemyBlue2.png")));
+            sprites.add(ImageIO.read(Monster.class.getResource("/sprites/enemyBlue3.png")));
+            sprites.add(ImageIO.read(Monster.class.getResource("/sprites/enemyBlue5.png")));
         } catch (IOException e) {
             System.out.println("Failed to load the sprite image");
             e.printStackTrace();
         }
+    }
+
+    public Monster(int spirteNumber, int initialX, int initialY, int thrustsNumber, int SCORE) {
+        x = initialX;
+        y = initialY;
+        this.SCORE = SCORE;
+        this.thrustsNumber = thrustsNumber;
+        sprite = sprites.get(spirteNumber);
         thrusts = switch (thrustsNumber) {
             case 1 ->
                     new Thrusts("/effects/fire04.png", "/effects/fire05.png", x + Player.WIDHT / 3, 0, y - 4, WIDHT / 3, HEIGHT / 2);

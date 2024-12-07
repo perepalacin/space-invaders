@@ -1,10 +1,7 @@
 package game;
 
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.*;
 
 import javax.swing.JPanel;
 
@@ -21,7 +18,6 @@ public class GameLoop extends  JPanel implements Runnable{
         this.setLayout(null);
         this.addKeyListener(new KeyHandler());
         this.setFocusable(true);
-
         gm = new GameManager();
     }
 
@@ -53,7 +49,7 @@ public class GameLoop extends  JPanel implements Runnable{
     }
 
     private void update() {
-        if (!KeyHandler.pausePressed && !gm.gameOver) {
+        if (!gm.gameOver) {
             gm.update();
         }
     }

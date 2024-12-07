@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
 
-    public static boolean leftPressed, rightPressed, pausePressed;
+    public static boolean leftPressed, rightPressed, spacePressed;
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -24,7 +24,7 @@ public class KeyHandler implements KeyListener {
         }
 
         if (code == KeyEvent.VK_SPACE) {
-            pausePressed = !pausePressed;
+            spacePressed = !spacePressed;
         }
     }
 

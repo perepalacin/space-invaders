@@ -1,12 +1,14 @@
 package game.effects;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 public class Asteroid {
     public int x, y;
@@ -16,6 +18,8 @@ public class Asteroid {
     private int rotationSpeed;
     private static final ArrayList<BufferedImage> sprites = new ArrayList<>();
     private final BufferedImage sprite;
+    private int xSpeed;
+    private int ySpeed;
     static {
         try {
             sprites.add(ImageIO.read(Asteroid.class.getResource("/effects/meteorGrey_big1.png")));
@@ -33,13 +37,15 @@ public class Asteroid {
         this.WIDHT = 10 * sizeMultiplier;
         this.HEIGHT = 10 * sizeMultiplier;
         this.rotationSpeed = rotationSpeed;
+        ySpeed = new Random().nextInt(5) + 10;
+        xSpeed = (new Random().nextInt(2) + 1) * (new Random().nextBoolean() ? 1 : -1);
         int asteroidSprite = new Random().nextInt(3);
         sprite = sprites.get(asteroidSprite);
     }
 
     public void update() {
-        x += 1;
-        y += 1;
+        x += xSpeed;
+        y += ySpeed;
         angle += rotationSpeed;
     }
 
@@ -58,11 +64,10 @@ public class Asteroid {
     }
 
     public static Asteroid generateAsteroid () {
-        int chance = new Random().nextInt(150);
+        int chance = new Random().nextInt(100);
         if (chance < 6) {
             return new Asteroid(new Random().nextInt(1000) - 500, new Random().nextInt(3) + 1);
         }
         return null;
     }
-
 }

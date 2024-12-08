@@ -2,10 +2,10 @@ package game;
 
 import game.effects.Asteroid;
 import game.effects.Impact;
+import game.effects.SpeedEffect;
 import game.entities.*;
 import game.projectiles.Bullet;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -30,14 +30,15 @@ public class GameManager {
     public final int PlayerRowHeight;
     public final int ProtectionsRowHeight;
     public int currentScore = 0;
-    public int maxScore = 0;
+    public int maxScore;
 
     public boolean gameOver;
+    public boolean gameWon;
     public Player player;
     public ArrayList<Monster> monsters = new ArrayList<>();;
     public ArrayList<Protection> protections = new ArrayList<>();
     public ArrayList<Asteroid> asteroids = new ArrayList<>();
-
+    public ArrayList<SpeedEffect> speedEffects = new ArrayList<>();
     private static Font font = null;
     static {
         try {
@@ -46,13 +47,15 @@ public class GameManager {
             e.printStackTrace();
         }
     }
-    public GameManager () {
+
+    public GameManager (int highScore) {
         left_x = (GameLoop.WIDTH - WIDTH) / 2;
         right_x = WIDTH + (GameLoop.WIDTH - WIDTH) / 2;
         bottom_y = HEIGHT;
         ProtectionsRowHeight = bottom_y - Protection.HEIGHT;
         PlayerRowHeight = bottom_y + Player.HEIGHT;
         top_y = (GameLoop.HEIGHT - HEIGHT) / 2;
+        maxScore = highScore;
         player = new Player(GameLoop.WIDTH / 2, bottom_y + Player.HEIGHT);
         int monsterXPos;
         int row = 0;
@@ -81,31 +84,19 @@ public class GameManager {
     }
 
     public void draw(Graphics2D g2) {
-        BufferedImage sprite;
-
+        BufferedImage sprite = null;
         g2.setFont(Objects.requireNonNullElseGet(font, () -> new Font("Monospaced", Font.PLAIN, 24)));
+        g2.setColor(Color.decode("#012a42"));
+        g2.fillRect(0, 0, GameLoop.WIDTH, GameLoop.HEIGHT);
 
-        try {
-            sprite = ImageIO.read(getClass().getResource("/background/purple.png"));
-        } catch (IOException e) {
-            sprite = null;
-            e.printStackTrace();
-        }
-
-        if (sprite != null) {
-            g2.drawImage(sprite, 0, 0, GameLoop.WIDTH, GameLoop.HEIGHT, null);
-        } else {
-            // Fallback to drawing a rectangle if the sprite fails to load
-            g2.setColor(Color.BLUE);
-            g2.fillRect(0, 0, GameLoop.WIDTH, GameLoop.HEIGHT);
-        }
-
+        g2.setColor(Color.WHITE);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.drawString("SCORE",  30, (GameLoop.HEIGHT - HEIGHT) / 4);
         g2.drawString(String.valueOf(currentScore), 30, (GameLoop.HEIGHT - HEIGHT) / 2);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.drawString("HIGH SCORE", GameLoop.WIDTH - 120, (GameLoop.HEIGHT - HEIGHT) / 4);
-        g2.drawString(String.valueOf(maxScore), GameLoop.WIDTH - 120, (GameLoop.HEIGHT - HEIGHT) / 2);
+        g2.drawString("HIGH SCORE", GameLoop.WIDTH - 160, (GameLoop.HEIGHT - HEIGHT) / 4);
+        g2.drawString(String.valueOf(maxScore), GameLoop.WIDTH - 160, (GameLoop.HEIGHT - HEIGHT) / 2);
+        g2.drawString("Lives   x  " + String.valueOf(player.lives), 30, (GameLoop.HEIGHT - 20));
         asteroids.forEach(asteroid -> asteroid.draw(g2));
         player.draw(g2);
         monsters.forEach(monster -> monster.draw(g2));
@@ -126,10 +117,41 @@ public class GameManager {
         if (enemyImpact != null) {
             enemyImpact.draw(g2);
         }
+        if (!speedEffects.isEmpty()) {
+            speedEffects.forEach(speedEffect -> speedEffect.draw(g2));
+        }
+        if (gameOver) {
+            int x = GameLoop.WIDTH/2 -50;
+            int y = top_y + 320;
+            g2.setColor(Color.BLACK);
+            g2.fillRect(x - 100, y - 35, 310, 60);
+            g2.setColor(Color.WHITE);
+            g2.drawString("GAME   OVER!", x, y - 10);
+            g2.drawString("PRESS   SPACE   TO  RESTART", x - 80, y + 15);
+        } else if (gameWon) {
+            int x = GameLoop.WIDTH/2 -50;
+            int y = top_y + 320;
+            g2.setColor(Color.BLACK);
+            g2.fillRect(x - 100, y - 35, 310, 60);
+            g2.setColor(Color.WHITE);
+            g2.drawString("YOU   WON!", x, y - 10);
+            g2.drawString("PRESS   SPACE   TO  REPLAY", x - 80, y + 15);
+        }
     }
 
     public void updateMonsters() {
         int minX = right_x, maxX = left_x;
+        for (Monster monster : monsters) {
+            if (monster.x >= maxX) {
+                maxX = monster.x;
+            }
+            if (monster.x <= minX) {
+                minX = monster.x;
+            }
+            if (monster.y+ Monster.HEIGHT >= ProtectionsRowHeight) {
+                gameOver=true;
+            }
+        }
         if (monstersDirection == 1) {
             maxX = monsters.stream().mapToInt(monster -> monster.x).max().orElse(right_x);
         } else {
@@ -186,12 +208,14 @@ public class GameManager {
                     if (currentScore >= maxScore) {
                         maxScore = currentScore;
                     }
-                    System.out.println(currentScore);
                     monsters.remove(i);
                     playerBullet = null;
                     impacted = true;
                     break;
                 }
+            }
+            if (monsters.size() == 0) {
+                gameWon = true;
             }
         }
         if (!impacted) {
@@ -223,8 +247,12 @@ public class GameManager {
             if ((enemyBullet.y >= Player.Y) && (enemyBullet.y <= Player.Y + Player.HEIGHT) && (enemyBullet.X >= player.x) && (enemyBullet.X <= player.x + Player.WIDHT)) {
                 enemyImpact = new Impact(enemyBullet.X, enemyBullet.y, false, false);
                 enemyBullet = null;
-                player.lives--;
                 impacted = true;
+                if (player.lives == 1) {
+                    gameOver = true;
+                } else {
+                    player.lives--;
+                }
             }
         }
         if (!impacted) {
@@ -246,6 +274,20 @@ public class GameManager {
         }
         asteroids.forEach(Asteroid::update);
     }
+
+    public void generateSpeedEffects () {
+        SpeedEffect newEffect = SpeedEffect.generateEffect();
+        if (newEffect != null) {
+            for (int i = speedEffects.size() - 1; i >= 0; i--) {
+                if (speedEffects.get(i).y > bottom_y) {
+                    speedEffects.remove(i);
+                }
+            }
+            speedEffects.add(newEffect);
+        }
+        speedEffects.forEach(SpeedEffect::update);
+    }
+
 
     public void updateImpacts () {
         if (friendlyImpact != null) {
@@ -285,12 +327,12 @@ public class GameManager {
     }
 
     public void update() {
+        generateSpeedEffects();
         generateAsteroids();
         player.update();
         updateBullets();
         updateImpacts();
         updateMonsters();
-
     }
 }
 

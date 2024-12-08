@@ -14,13 +14,13 @@ public class Player {
     public int x;
     public int y;
     public int newY;
-    private final int HEIGHT = 25;
-    private final int WIDHT = 25;
+    public final static int HEIGHT = 25;
+    public final static int WIDHT = 25;
     private BufferedImage sprite;
 
-    public Player(){
-        this.x = GameLoop.WIDTH / 2;
-        this.y = GameManager.bottom_y + HEIGHT;
+    public Player(int initialX, int initialY){
+        this.x = initialX;
+        this.y = initialY;
         this.lives = 3;
         this.leftCollision = false;
         this.rightCollision = false;
@@ -45,14 +45,15 @@ public class Player {
     public void update() {
         checkCollisions();
         if (KeyHandler.rightPressed && !rightCollision) {
-            x += 10;
+            x += 8;
             KeyHandler.rightPressed = false;
         }
         if (KeyHandler.leftPressed && !leftCollision) {
-            x -= 10;
+            x -= 8;
             KeyHandler.leftPressed = false;
         }
     }
+
     public void draw (Graphics2D g2) {
         if (sprite != null) {
             g2.drawImage(sprite, x, y, WIDHT, HEIGHT, null);

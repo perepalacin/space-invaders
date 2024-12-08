@@ -1,5 +1,5 @@
 package game;
-
+// Assets library https://kenney.nl/assets/space-shooter-redux
 import javax.swing.*;
 
 public class Main {

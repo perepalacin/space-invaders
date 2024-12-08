@@ -1,6 +1,5 @@
 package game;
 
-import game.entities.Player;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -34,7 +33,7 @@ public class GameLoop extends  JPanel implements Runnable{
     @Override
     public void run() {
         //Game loop
-        double drawInterval = FPS;
+        final double drawInterval = 1; // Nanoseconds per frame
         double delta = 0;
         long lastTime = System.nanoTime();
         long currentTime;
